@@ -93,7 +93,7 @@ class QuizSubmission(models.Model):
         return False
 
     class Meta:
-        db_table = "QuizSubmission"
+        db_table = "quizsubmission"
         ordering = ("-create_time",)
 
     def __str__(self):

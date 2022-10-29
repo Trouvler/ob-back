@@ -8,7 +8,6 @@ from django.db import transaction, IntegrityError
 from django.db.models import F
 
 from account.models import User
-from conf.models import JudgeServer
 from contest.models import ContestRuleType, ACMContestRank, OIContestRank, ContestStatus
 from options.options import SysOptions
 from quiz.models import Quiz, QuizRuleType
@@ -24,14 +23,16 @@ logger = logging.getLogger(__name__)
 def process_pending_task():
     if cache.llen(CacheKey.waiting_queue):
         # 防止循环引入
-        from judge.tasks import judge_task
+        from judge.tasks import judge_task_quiz
         tmp_data = cache.rpop(CacheKey.waiting_queue)
         if tmp_data:
             data = json.loads(tmp_data.decode("utf-8"))
-            judge_task.send(**data)
+            judge_task_quiz.send(**data)
+
 
 
 class JudgeDispatcher_quiz(APIView):
+    
     def __init__(self, submission_id, quiz_id):
         super().__init__()
         self.submission = QuizSubmission.objects.get(id=submission_id)
@@ -44,25 +45,25 @@ class JudgeDispatcher_quiz(APIView):
         else:
             self.quiz = Quiz.objects.get(id=quiz_id)
 
-
+    print("judge_task_quiz2")
     def judge(self):
 
-        submit = self.submission.submit
-        ans = self.quiz.ans
+        self.submit = self.submission.submit
+        self.ans = self.quiz.ans
 
         data = {
-            "sub": submit,
-            'ans': ans
+            "sub": self.submit,
+            'ans': self.ans
 
         }
-
+        print("judge_task_quiz2")
         if data["sub"] == data["ans"]:
             self.submission.result = JudgeStatus_quiz.CORRECT
         else:
             self.submission.result = JudgeStatus_quiz.WROW
-
+        logger.info("abc"+ self.ans)
         self.submission.save()
-
+        logging.info("Log message goes here.")
         if self.contest_id:
             if self.contest.status != ContestStatus.CONTEST_UNDERWAY or \
                     User.objects.get(id=self.submission.user_id).is_contest_admin(self.contest):

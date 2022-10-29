@@ -19,3 +19,4 @@ def judge_task_quiz(submission_id, quiz_id):
     if User.objects.get(id=uid).is_disabled:
         return
     JudgeDispatcher_quiz(submission_id, quiz_id).judge()
+    print("judge_task_quiz")

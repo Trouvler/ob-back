@@ -20,9 +20,21 @@ class ProblemRuleType(Choices):
 
 
 class ProblemDifficulty(object):
-    High = "High"
-    Mid = "Mid"
-    Low = "Low"
+    E1 = "E1"
+    M1 = "M1"
+    H1 = "H1"
+    E2 = "E2"
+    M2 = "M2"
+    H2 = "H2"
+    E3 = "E3"
+    M3 = "M3"
+    H3 = "H3"
+    E4 = "E4"
+    M4 = "M4"
+    H4 = "H4"
+    E5 = "E5"
+    M5 = "M5"
+    H5 = "H5"
 
 
 class ProblemIOMode(Choices):

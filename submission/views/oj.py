@@ -178,14 +178,15 @@ class SubmissionQuizAPI(APIView):
             quiz = Quiz.objects.get(id=data["quiz_id"], contest_id=data.get("contest_id"), visible=True)
         except Quiz.DoesNotExist:
             return self.error("Quiz not exist")
-        submission = Submission.objects.create(user_id=request.user.id,
+        submission = QuizSubmission.objects.create(user_id=request.user.id,
                                                username=request.user.username,
-                                               code=data["submit"],
+                                               submit=data["submit"],
                                                quiz_id=quiz.id,
                                                ip=request.session["ip"],
                                                contest_id=data.get("contest_id"))
         # use this for debug
         # JudgeDispatcher(submission.id, quiz.id).judge()
+        print("jude?")
         judge_task_quiz.send(submission.id, quiz.id)
         if hide_id:
             return self.success()
@@ -212,7 +213,7 @@ class SubmissionQuizAPI(APIView):
         submission_data["can_unshare"] = submission.check_user_permission(request.user, check_share=False)
         return self.success(submission_data)
 
-    @validate_serializer(ShareSubmissionSerializer)
+    @validate_serializer(ShareSubmissionQuizSerializer)
     @login_required
     def put(self, request):
         """
@@ -259,22 +260,22 @@ class SubmissionListAPI(APIView):
         data["results"] = SubmissionListSerializer(data["results"], many=True, user=request.user).data
         return self.success(data)
 
-class SubmissionQuizListAPI(APIView):여기해야함
+class SubmissionQuizListAPI(APIView):
     def get(self, request):
         if request.GET.get("contest_id"):
             return self.error("Parameter error")
 
-        submissions = Submission.objects.filter(contest_id__isnull=True).select_related("problem__created_by")
+        submissions = QuizSubmission.objects.filter(contest_id__isnull=True).select_related("problem__created_by")
         quiz_id = request.GET.get("quiz_id")
         myself = request.GET.get("myself")
         result = request.GET.get("result")
         username = request.GET.get("username")
         if quiz_id:
             try:
-                problem = Problem.objects.get(_id=quiz_id, contest_id__isnull=True, visible=True)
-            except Problem.DoesNotExist:
+                quiz = QuizSubmission.objects.get(_id=quiz_id, contest_id__isnull=True, visible=True)
+            except QuizSubmission.DoesNotExist:
                 return self.error("Problem doesn't exist")
-            submissions = submissions.filter(problem=problem)
+            submissions = submissions.filter(quiz=quiz)
         if (myself and myself == "1") or not SysOptions.submission_list_show_all:
             submissions = submissions.filter(user_id=request.user.id)
         elif username:
@@ -282,7 +283,7 @@ class SubmissionQuizListAPI(APIView):여기해야함
         if result:
             submissions = submissions.filter(result=result)
         data = self.paginate_data(request, submissions)
-        data["results"] = SubmissionListSerializer(data["results"], many=True, user=request.user).data
+        data["results"] = SubmissionQuizListSerializer(data["results"], many=True, user=request.user).data
         return self.success(data)
 
 class ContestSubmissionListAPI(APIView):
@@ -328,6 +329,7 @@ class ContestSubmissionListAPI(APIView):
 
         data = self.paginate_data(request, submissions)
         data["results"] = SubmissionListSerializer(data["results"], many=True, user=request.user).data
+        data["results"] = SubmissionQuizListSerializer(data["results"], many=True, user=request.user).data
         return self.success(data)
 
 
