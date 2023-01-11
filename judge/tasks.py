@@ -14,6 +14,7 @@ def judge_task(submission_id, problem_id):
         return
     JudgeDispatcher(submission_id, problem_id).judge()
 
+@dramatiq.actor(**DRAMATIQ_WORKER_ARGS())
 def judge_task_quiz(submission_id, quiz_id):
     uid = QuizSubmission.objects.get(id=submission_id).user_id
     if User.objects.get(id=uid).is_disabled:

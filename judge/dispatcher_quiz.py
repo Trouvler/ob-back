@@ -45,7 +45,7 @@ class JudgeDispatcher_quiz(APIView):
         else:
             self.quiz = Quiz.objects.get(id=quiz_id)
 
-    print("judge_task_quiz2")
+    print("judge_task_quiz1")
     def judge(self):
 
         self.submit = self.submission.submit
@@ -54,7 +54,6 @@ class JudgeDispatcher_quiz(APIView):
         data = {
             "sub": self.submit,
             'ans': self.ans
-
         }
         print("judge_task_quiz2")
         if data["sub"] == data["ans"]:
